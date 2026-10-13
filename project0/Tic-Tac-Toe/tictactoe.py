@@ -48,8 +48,8 @@ def result(board, action):
     """
     Returns the board that results from making the move (i, j) on the board.
     """
-    if board[action[0]][action[1]] != EMPTY:
-        raise ValueError("Invalid move")
+    if not (0 <= action[0] <= 2 and 0 <= action[1] <= 2) or board[action[0]][action[1]] != EMPTY:
+        raise Exception("Invalid move")
     new_board = []
     for row in board:
         temp_row = []
@@ -65,13 +65,13 @@ def winner(board):
     Returns the winner of the game if there is one.
     """
     for i in range(3):
-        if board[0][i] == board[1][i] == board[2][i]:
+        if board[0][i] == board[1][i] == board[2][i] and board[0][i] != EMPTY:
             return board[0][i]
-        if board[i][0] == board[i][1] == board[i][2]:
+        if board[i][0] == board[i][1] == board[i][2] and board[i][0] != EMPTY:
             return board[i][0]
-    if board[0][0] == board[1][1] == board[2][2]:
+    if board[0][0] == board[1][1] == board[2][2] and board[0][0] != EMPTY:
         return board[0][0]
-    if board[0][2] == board[1][1] == board[2][0]:
+    if board[0][2] == board[1][1] == board[2][0] and board[1][1] != EMPTY:
         return board[1][1]
     return None
 
@@ -105,6 +105,8 @@ def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
+    if terminal(board):
+        return None
     best_action = None
     if player(board) == X:
         # we want highest utility

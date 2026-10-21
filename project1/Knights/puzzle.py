@@ -9,24 +9,51 @@ BKnave = Symbol("B is a Knave")
 CKnight = Symbol("C is a Knight")
 CKnave = Symbol("C is a Knave")
 
+# Statements for each puzzle
+AStatement0 = And(AKnight, AKnave)
+AStatement1 = And(AKnave, BKnave)
+AStatement2 = Or(And(AKnight, BKnight), And(AKnave, BKnave))
+BStatement2 = Or(And(AKnight, BKnave), And(AKnave, BKnight))
+AStatement3 = Or(AKnight, AKnave)
+BStatement3 = And(
+    Implication(AStatement3, AKnight),
+    CKnave
+)
+CStatement3 = AKnight
+
 # Puzzle 0
 # A says "I am both a knight and a knave."
 knowledge0 = And(
-    # TODO
+    Or(AKnight, AKnave),
+    Not(And(AKnight, AKnave)),
+    Implication(AKnight, AStatement0),
+    Implication(AKnave, Not(AStatement0))
 )
 
 # Puzzle 1
 # A says "We are both knaves."
 # B says nothing.
 knowledge1 = And(
-    # TODO
+    Or(AKnight, AKnave),
+    Not(And(AKnight, AKnave)),
+    Implication(AKnight, AStatement1),
+    Implication(AKnave, Not(AStatement1)),
+    Or(BKnight, BKnave),
+    Not(And(BKnight, BKnave))
 )
 
 # Puzzle 2
 # A says "We are the same kind."
 # B says "We are of different kinds."
 knowledge2 = And(
-    # TODO
+    Or(AKnight, AKnave),
+    Not(And(AKnight, AKnave)),
+    Implication(AKnight, AStatement2),
+    Implication(AKnave, Not(AStatement2)),
+    Or(BKnight, BKnave),
+    Not(And(BKnight, BKnave)),
+    Implication(BKnight, BStatement2),
+    Implication(BKnave, Not(BStatement2))
 )
 
 # Puzzle 3
@@ -35,7 +62,18 @@ knowledge2 = And(
 # B says "C is a knave."
 # C says "A is a knight."
 knowledge3 = And(
-    # TODO
+    Or(AKnight, AKnave),
+    Not(And(AKnight, AKnave)),
+    Implication(AKnight, AStatement3),
+    Implication(AKnave, Not(AStatement3)),
+    Or(BKnight, BKnave),
+    Not(And(BKnight, BKnave)),
+    Implication(BKnight, BStatement3),
+    Implication(BKnave, Not(BStatement3)),
+    Or(CKnight, CKnave),
+    Not(And(CKnight, CKnave)),
+    Implication(CKnight, CStatement3),
+    Implication(CKnave, Not(CStatement3))
 )
 
 
@@ -53,6 +91,7 @@ def main():
             print("    Not yet implemented.")
         else:
             for symbol in symbols:
+                # print(knowledge, symbol, model_check(knowledge, symbol))
                 if model_check(knowledge, symbol):
                     print(f"    {symbol}")
 

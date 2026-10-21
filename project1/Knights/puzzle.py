@@ -10,15 +10,22 @@ CKnight = Symbol("C is a Knight")
 CKnave = Symbol("C is a Knave")
 
 # Statements for each puzzle
+# puzzle 0
 AStatement0 = And(AKnight, AKnave)
+# puzzle 1
 AStatement1 = And(AKnave, BKnave)
+# puzzle 2
 AStatement2 = Or(And(AKnight, BKnight), And(AKnave, BKnave))
 BStatement2 = Or(And(AKnight, BKnave), And(AKnave, BKnight))
-AStatement3 = Or(AKnight, AKnave)
-BStatement3 = And(
-    Implication(AStatement3, AKnight),
-    CKnave
+# puzzle 3
+AStatement3a = Symbol('A says "I am a knave"')
+AStatement3b = Symbol('A says "I am a knight"')
+AStatement3 = And(Or(AStatement3a, AStatement3b), Not(And(AStatement3a, AStatement3b)))
+BStatement3a = And(
+    Implication(BKnight, AStatement3a),
+    Implication(BKnave, Not(AStatement3a))
 )
+BStatement3b = CKnave
 CStatement3 = AKnight
 
 # Puzzle 0
@@ -64,12 +71,20 @@ knowledge2 = And(
 knowledge3 = And(
     Or(AKnight, AKnave),
     Not(And(AKnight, AKnave)),
-    Implication(AKnight, AStatement3),
-    Implication(AKnave, Not(AStatement3)),
+    AStatement3,
+    Implication(AStatement3a, And(
+        Implication(AKnight, AKnave),
+        Implication(AKnave, Not(AKnave))
+    )),
+    Implication(AStatement3b, And(
+        Implication(AKnight, AKnight),
+        Implication(AKnave, Not(AKnight))
+    )),
     Or(BKnight, BKnave),
     Not(And(BKnight, BKnave)),
-    Implication(BKnight, BStatement3),
-    Implication(BKnave, Not(BStatement3)),
+    BStatement3a,
+    Implication(BKnight, BStatement3b),
+    Implication(BKnave, Not(BStatement3b)),
     Or(CKnight, CKnave),
     Not(And(CKnight, CKnave)),
     Implication(CKnight, CStatement3),

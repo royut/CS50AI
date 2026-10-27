@@ -196,32 +196,13 @@ class MinesweeperAI():
         # 2
         self.mark_safe(cell)
         # 3
-        new_sentence = Sentence(self.get_neighbors(cell), count)
+        neighbors, neighbors_count = self.get_neighbors(cell, count)
+        new_sentence = Sentence(neighbors, neighbors_count)
         self.knowledge.append(new_sentence)
         # 4
-        new_sentence_known_mines = new_sentence.known_mines().copy()
-        if new_sentence_known_mines:
-            for mine in new_sentence_known_mines:
-                self.mark_mine(mine)
-        new_sentence_known_safes = new_sentence.known_safes().copy()
-        if new_sentence_known_safes:
-            for mine in new_sentence_known_safes:
-                self.mark_safe(mine)
+        self.check_mines_safes(self.knowledge)
         # 5
-        for sentence in self.knowledge[:-1]:
-            if new_sentence.cells.issubset(sentence.cells) or sentence.cells.issubset(new_sentence.cells):
-                if new_sentence.cells.issubset(sentence.cells):
-                    child_sentence = Sentence(sentence.cells - new_sentence.cells, sentence.count - new_sentence.count)
-                elif sentence.cells.issubset(new_sentence.cells):
-                    child_sentence = Sentence(new_sentence.cells - sentence.cells, new_sentence.count - sentence.count)
-                child_sentence_known_mines = child_sentence.known_mines().copy()
-                if child_sentence_known_mines:
-                    for mine in child_sentence_known_mines:
-                        self.mark_mine(mine)
-                child_sentence_known_safes = child_sentence.known_safes().copy()
-                if child_sentence_known_safes:
-                    for mine in child_sentence_known_safes:
-                        self.mark_safe(mine)
+        self.check_knowledge_base()
 
     def make_safe_move(self):
         """
@@ -256,11 +237,52 @@ class MinesweeperAI():
             return random.choice(possible_moves)
         return None
 
-    def get_neighbors(self, cell):
+    def get_neighbors(self, cell, count):
         neighbors = set()
         row, col = cell
         for i in range(max(0, row-1), min(self.height, row+2)):
             for j in range(max(0, col-1), min(self.width, col+2)):
-                if (i, j) != cell and (i, j) not in self.safes:
-                    neighbors.add((i, j))
-        return neighbors
+                if (i, j) == cell or (i, j) in self.safes:
+                    continue
+                if (i, j) in self.mines:
+                    count -= 1
+                    continue
+                neighbors.add((i, j))
+        return neighbors, count
+
+    def check_mines_safes(self, sentences):
+        for sentence in sentences:
+            known_mines = sentence.known_mines().copy()
+            for mine in known_mines:
+                self.mark_mine(mine)
+            known_safes = sentence.known_safes().copy()
+            for safe in known_safes:
+                self.mark_safe(safe)
+
+    def check_knowledge_base(self):
+        while True:
+            new_knowledge = []
+            for knowledge1 in self.knowledge:
+                for knowledge2 in self.knowledge:
+                    if knowledge1 == knowledge2 or not knowledge1.cells or not knowledge2.cells:
+                        continue
+                    new_sentence = None
+                    if knowledge1.cells.issubset(knowledge2.cells) and knowledge1.cells != knowledge2.cells:
+                        new_sentence = Sentence(knowledge2.cells - knowledge1.cells,
+                                                knowledge2.count - knowledge1.count)
+                    elif knowledge2.cells.issubset(knowledge1.cells) and knowledge1.cells != knowledge2.cells:
+                        new_sentence = Sentence(knowledge1.cells - knowledge2.cells,
+                                                knowledge1.count - knowledge2.count)
+                    if new_sentence and new_sentence not in self.knowledge:
+                        # print(knowledge1.cells, knowledge1.count, knowledge2.cells, knowledge2.count, new_sentence.cells, new_sentence.count)
+                        new_knowledge.append(new_sentence)
+            self.check_mines_safes(self.knowledge + new_knowledge)
+            # print(new_knowledge)
+            if not new_knowledge:
+                break
+            else:
+                for knowledge in new_knowledge:
+                    # print(knowledge.cells, knowledge.count)
+                    if knowledge not in self.knowledge and knowledge.cells:
+                        self.knowledge.append(knowledge)
+                        # print('added')

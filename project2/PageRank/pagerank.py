@@ -4,13 +4,14 @@ import re
 import sys
 
 DAMPING = 0.85
-SAMPLES = 10000
+SAMPLES = 10_000
 
 
 def main():
     if len(sys.argv) != 2:
         sys.exit("Usage: python pagerank.py corpus")
     corpus = crawl(sys.argv[1])
+    print(corpus)
     ranks = sample_pagerank(corpus, DAMPING, SAMPLES)
     print(f"PageRank Results from Sampling (n = {SAMPLES})")
     for page in sorted(ranks):
@@ -57,7 +58,15 @@ def transition_model(corpus, page, damping_factor):
     linked to by `page`. With probability `1 - damping_factor`, choose
     a link at random chosen from all pages in the corpus.
     """
-    raise NotImplementedError
+    prob_dist = {}
+    for page2visit in corpus:
+        prob = (1 - damping_factor) / len(corpus)
+        if page2visit in corpus[page]:
+            prob += (damping_factor / len(corpus[page]))
+        if len(corpus[page]) == 0:
+            prob = 1 / len(corpus)
+        prob_dist[page2visit] = prob
+    return prob_dist
 
 
 def sample_pagerank(corpus, damping_factor, n):
@@ -69,7 +78,18 @@ def sample_pagerank(corpus, damping_factor, n):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    sample_result = {}
+    for page in corpus:
+        sample_result[page] = 0
+    curr_page = random.choice(list(corpus.keys()))
+    sample_result[curr_page] = 1
+    for i in range(n-1):
+        prob_dist = transition_model(corpus, curr_page, damping_factor)
+        curr_page = random.choices(list(prob_dist.keys()), weights=list(prob_dist.values()), k=1)[0]
+        sample_result[curr_page] += 1
+    for page in sample_result:
+        sample_result[page] /= n
+    return sample_result
 
 
 def iterate_pagerank(corpus, damping_factor):
@@ -81,7 +101,26 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    old_dist = {}
+    for page in corpus:
+        old_dist[page] = 1 / len(corpus)
+    print(old_dist)
+    while True:
+        new_dist = {}
+        for page in corpus:
+            prob = (1 - damping_factor) / len(corpus)
+            for check_page in corpus:
+                if page in corpus[check_page]:
+                    prob += damping_factor * (old_dist[check_page] / len(corpus[check_page]))
+            new_dist[page] = prob
+        old_dist = new_dist.copy()
+        change_range_flag = True
+        for page in corpus:
+            if abs(old_dist[page] - new_dist[page]) > .001:
+                change_range_flag = False
+        if change_range_flag:
+            break
+    return new_dist
 
 
 if __name__ == "__main__":

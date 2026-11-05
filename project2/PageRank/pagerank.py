@@ -110,7 +110,7 @@ def iterate_pagerank(corpus, damping_factor):
         for page in corpus:
             prob = (1 - damping_factor) / len(corpus)
             for check_page in corpus:
-                if page in corpus[check_page]:
+                if page in corpus[check_page] or len(corpus[check_page]) == 0:
                     prob += damping_factor * (old_dist[check_page] / len(corpus[check_page]))
             new_dist[page] = prob
         old_dist = new_dist.copy()

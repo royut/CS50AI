@@ -11,6 +11,7 @@ def main():
     if len(sys.argv) != 2:
         sys.exit("Usage: python pagerank.py corpus")
     corpus = crawl(sys.argv[1])
+    corpus = {'1': {'2'}, '2': {'1', '3'}, '3': {'4', '2'}, '4': {'2'}}
     print(corpus)
     ranks = sample_pagerank(corpus, DAMPING, SAMPLES)
     print(f"PageRank Results from Sampling (n = {SAMPLES})")
@@ -110,16 +111,18 @@ def iterate_pagerank(corpus, damping_factor):
         for page in corpus:
             prob = (1 - damping_factor) / len(corpus)
             for check_page in corpus:
-                if page in corpus[check_page] or len(corpus[check_page]) == 0:
+                if len(corpus[check_page]) == 0:
+                    prob += damping_factor * (old_dist[check_page] / len(corpus))
+                elif page in corpus[check_page]:
                     prob += damping_factor * (old_dist[check_page] / len(corpus[check_page]))
             new_dist[page] = prob
-        old_dist = new_dist.copy()
         change_range_flag = True
         for page in corpus:
             if abs(old_dist[page] - new_dist[page]) > .001:
                 change_range_flag = False
         if change_range_flag:
             break
+        old_dist = new_dist.copy()
     return new_dist
 
 
